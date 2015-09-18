@@ -75,7 +75,7 @@ class TemplateBackend(object):
             for part in ['subject', 'html', 'plain']:
                 try:
                     response[part] = block_render.render_block_to_string(full_template_name, part, render_context).strip()
-                except BlockNotFound, error:
+                except BlockNotFound as error:
                     errors[part] = error
         else:
             try:

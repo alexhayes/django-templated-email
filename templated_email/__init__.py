@@ -3,6 +3,11 @@ from django.utils.importlib import import_module
 from django.core.exceptions import ImproperlyConfigured
 from templated_email.backends.vanilla_django import TemplateBackend
 
+try:
+    basestring
+except NameError:
+    basestring = str
+
 
 def get_connection(backend=None, template_prefix=None, template_suffix=None,
                    fail_silently=False, **kwargs):
@@ -20,12 +25,12 @@ def get_connection(backend=None, template_prefix=None, template_suffix=None,
             # First check if class name is omited and we have module in settings
             mod = import_module(klass_path)
             klass_name = 'TemplateBackend'
-        except ImportError, e:
+        except ImportError as e:
             # Fallback to class name
             try:
                 mod_name, klass_name = klass_path.rsplit('.', 1)
                 mod = import_module(mod_name)
-            except ImportError, e:
+            except ImportError as e:
                 raise ImproperlyConfigured(
                     ('Error importing templated email backend module %s: "%s"'
                      % (mod_name, e)))
