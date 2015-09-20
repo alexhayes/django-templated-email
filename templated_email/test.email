@@ -1,0 +1,5 @@
+{% block subject %}{{ subject }}{% endblock %}
+
+{% block plain %}Plain text{% endblock %}
+
+{% block html %}<p>HTML text</p>{% endblock %}

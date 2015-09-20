@@ -1,7 +1,10 @@
+from distutils.version import LooseVersion
+import django
 from django.conf import settings
 from django.core.mail import EmailMessage, EmailMultiAlternatives, get_connection
 from django.template import Context, TemplateDoesNotExist
 from django.template.loader import get_template
+from django.template.loader_tags import BlockNode
 from django.utils.translation import ugettext as _
 
 from templated_email.utils import _get_node, BlockNotFound
@@ -72,11 +75,20 @@ class TemplateBackend(object):
             multi_part = None
 
         if multi_part:
-            for part in ['subject', 'html', 'plain']:
-                try:
-                    response[part] = block_render.render_block_to_string(full_template_name, part, render_context).strip()
-                except BlockNotFound as error:
-                    errors[part] = error
+            if LooseVersion(django.get_version()) >= LooseVersion("1.8"):
+                # Django 1.8+ - see http://stackoverflow.com/a/29633563/3216868
+                parts = ['subject', 'plain', 'html']
+                for node in multi_part.template:
+                    if isinstance(node, BlockNode):
+                        if node.name in parts:
+                            response[node.name] = node.render(render_context)
+
+            else:
+                for part in ['subject', 'html', 'plain']:
+                    try:
+                        response[part] = block_render.render_block_to_string(full_template_name, part, render_context).strip()
+                    except BlockNotFound as error:
+                        errors[part] = error
         else:
             try:
                 html_part = get_template('%s.html' % prefixed_template_name)

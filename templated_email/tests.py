@@ -1,10 +1,11 @@
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
 
-from templated_email import get_connection, backends
+from templated_email import get_connection, backends, get_templated_mail
 
 
 class GetConnectionTestCase(TestCase):
+
     def test_default(self):
         connection = get_connection()
 
@@ -35,3 +36,21 @@ class GetConnectionTestCase(TestCase):
         klass = 'templated_email.backends.vanilla_django.NoBackend'
 
         self.assertRaises(ImproperlyConfigured, get_connection, klass)
+
+    def test_get_templated_mail(self):
+        context = dict(
+            subject='Subject',
+        )
+        msg = get_templated_mail(
+            template_name='test',
+            to=['test@example.com'],
+            context=context,
+        )
+        """:type : EmailMultiAlternatives"""
+
+        self.assertEqual(msg.subject, context['subject'])
+        self.assertEqual(msg.body, "Plain text")
+        self.assertEqual(len(msg.alternatives), 1)
+        self.assertEqual(msg.alternatives[0][0], "<p>HTML text</p>")
+        self.assertEqual(msg.alternatives[0][1], "text/html")
+
